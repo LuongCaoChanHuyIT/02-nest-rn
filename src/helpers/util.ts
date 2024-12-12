@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt'
-const saltRounds = 100
+const bcrypt = require('bcrypt')
+const saltRounds = 10
 
 export const hashPasswordHelper = async (plainPassword: string) => {
   try {
