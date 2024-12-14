@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { hashPasswordHelper } from '@/helpers/util';
@@ -18,12 +18,10 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const {name, email, password} = createUserDto
-
-    const isExist = this.isEmailExist(email)
+    const isExist = await this.isEmailExist(email)
     if(isExist){
       throw new BadRequestException(`Email is exist ${email}`)
     }
-
     const hashPassword = await hashPasswordHelper(password)
     const user = await this.userModel.create({
       name, email, password: hashPassword
@@ -50,11 +48,15 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(updateUserDto: UpdateUserDto) {
+    return await this.userModel.updateOne({_id: updateUserDto._id}, {...updateUserDto})
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(_id: string) {
+    if(mongoose.isValidObjectId(_id)){
+      return await this.userModel.deleteOne({_id})
+    }else{
+      throw new BadRequestException()
+    }
   }
 }
